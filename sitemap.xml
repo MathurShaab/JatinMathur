@@ -18,5 +18,9 @@
   <priority>0.80</priority>
 </url>
 
+<image:image>
+  <image:loc>https://mathurshaab.github.io/JatinMathur/img/jatin-mathur-developer.png</image:loc>
+  <image:caption>Jatin Mathur - Full Stack Developer</image:caption>
+</image:image>
 
 </urlset>
