@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+      
+       xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+      >
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
+
+<url>
+    <loc>https://mathurshaab.github.io/JatinMathur/</loc>
+    <lastmod>2025-01-09T13:29:15+00:00</lastmod>
+    <priority>1.00</priority>
+    <image:image>
+      <image:loc>https://mathurshaab.github.io/JatinMathur/img/jatin-mathur-developer.png</image:loc>
+      <image:caption>Jatin Mathur - Full Stack Developer</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://mathurshaab.github.io/JatinMathur/index.html</loc>
+    <lastmod>2025-01-09T13:29:15+00:00</lastmod>
+    <priority>0.80</priority>
+    <image:image>
+      <image:loc>https://mathurshaab.github.io/JatinMathur/img/jatin-mathur-developer.png</image:loc>
+      <image:caption>Jatin Mathur - Full Stack Developer</image:caption>
+    </image:image>
+  </url>
+
+</urlset>
+
+
