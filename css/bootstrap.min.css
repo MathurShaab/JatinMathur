@@ -12566,9 +12566,9 @@ fieldset:disabled .btn {
 .progress-bar {
     transition: width 1.5s ease-in-out;
 }
-<<<<<<< HEAD
 
-=======
+
+
 #chatbot-bubble {
     position: fixed;
     bottom: 20px;
@@ -12810,4 +12810,4 @@ fieldset:disabled .btn {
     font-family: monospace;
     font-size: 90%;
 }
->>>>>>> 20019b6 (AI integrated)
+
