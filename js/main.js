@@ -198,8 +198,13 @@ function appendMessage(sender, text) {
         pre.appendChild(code);
         div.appendChild(pre);
     } else {
-        // Apply formatting (bold, italic, inline code, lists)
-        div.innerHTML = formatMessage(text);
+        // Split text by new lines and wrap each line in <div> for ChatGPT-like formatting
+        const formattedLines = formatMessage(text).split('\n').map(line => {
+            const lineDiv = document.createElement('div');
+            lineDiv.innerHTML = line.trim();
+            return lineDiv;
+        });
+        formattedLines.forEach(lineDiv => div.appendChild(lineDiv));
     }
 
     chatbotMessages.appendChild(div);
@@ -222,6 +227,7 @@ function formatMessage(text) {
 
     return text;
 }
+
 
 
 
