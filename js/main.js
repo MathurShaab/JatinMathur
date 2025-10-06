@@ -123,6 +123,8 @@
 
     
 })(jQuery);
+
+// ---------- Element References ----------
 const chatbotIcon = document.getElementById('chatbot-icon');
 const chatbotBox = document.getElementById('chatbot-box');
 const closeChatBtn = document.getElementById('closeChat');
@@ -130,27 +132,25 @@ const chatbotMessages = document.getElementById('chatbot-messages');
 const userMessageInput = document.getElementById('userMessage');
 const sendMessageBtn = document.getElementById('sendMessage');
 const overlay = document.getElementById('chatbot-overlay');
+const voiceBtn = document.getElementById('voiceBtn');
 
-// Open/Close chat window
+// ---------- Open/Close Chat Window ----------
 chatbotIcon.addEventListener('click', () => {
     chatbotBox.classList.toggle('collapsed');
     overlay.classList.toggle('active');
 });
-
 closeChatBtn.addEventListener('click', () => {
     chatbotBox.classList.add('collapsed');
     overlay.classList.remove('active');
 });
-
-// Close chat if overlay is clicked
 overlay.addEventListener('click', () => {
     chatbotBox.classList.add('collapsed');
     overlay.classList.remove('active');
 });
 
-// Send message events
+// ---------- Send Message ----------
 sendMessageBtn.addEventListener('click', sendMessage);
-userMessageInput.addEventListener('keypress', function(e) {
+userMessageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
 
@@ -160,36 +160,14 @@ function sendMessage() {
 
     appendMessage('user', message);
     userMessageInput.value = '';
-
-    // Show typing indicator
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'typing-indicator';
-    typingDiv.innerHTML = '<span></span><span></span><span></span>';
-    chatbotMessages.appendChild(typingDiv);
-    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-
-    // Call API
-    fetch('https://jatin-mathur.vercel.app/api/chat.js', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: message }),
-    })
-    .then(res => res.json())
-    .then(data => {
-        chatbotMessages.removeChild(typingDiv);
-        appendMessage('bot', data.response);
-    })
-    .catch(() => {
-        chatbotMessages.removeChild(typingDiv);
-        appendMessage('bot', '⚠️ Error: Unable to fetch response');
-    });
+    sendMessageToAPI(message);
 }
 
+// ---------- Append Message ----------
 function appendMessage(sender, text) {
     const div = document.createElement('div');
     div.className = `chat-message ${sender}`;
 
-    // Detect if response contains code block
     if (text.includes("```")) {
         const codeContent = text.replace(/```[a-z]*\n?([\s\S]*?)```/, "$1").trim();
         const pre = document.createElement("pre");
@@ -198,7 +176,6 @@ function appendMessage(sender, text) {
         pre.appendChild(code);
         div.appendChild(pre);
     } else {
-        // Split text by new lines and wrap each line in <div> for ChatGPT-like formatting
         const formattedLines = formatMessage(text).split('\n').map(line => {
             const lineDiv = document.createElement('div');
             lineDiv.innerHTML = line.trim();
@@ -207,26 +184,120 @@ function appendMessage(sender, text) {
         formattedLines.forEach(lineDiv => div.appendChild(lineDiv));
     }
 
+    // If it's a bot message → add Copy button
+    if (sender === 'bot') {
+        addCopyButton(div, text);
+    }
+
     chatbotMessages.appendChild(div);
     chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
 }
 
-// ---- Format Message with Bold, Italic, Inline Code & Bullet Points ----
+// ---------- Message Formatting ----------
 function formatMessage(text) {
-    // Bold (**text**)
     text = text.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
-
-    // Italic (*text*) - only if not a list item
     text = text.replace(/(^|[^*])\*(.*?)\*/g, "$1<i>$2</i>");
-
-    // Inline code (`text`)
     text = text.replace(/`([^`]+)`/g, "<code>$1</code>");
-
-    // Bullet points (* item → • item)
     text = text.replace(/^\s*\* (.*)$/gm, "• $1");
-
     return text;
 }
+
+// ---------- Copy Button ----------
+function addCopyButton(messageElement, messageText) {
+    const copyBtn = document.createElement("button");
+    copyBtn.textContent = "📋 Copy";
+    copyBtn.classList.add("copy-btn");
+
+    copyBtn.addEventListener("click", async () => {
+        try {
+            await navigator.clipboard.writeText(messageText);
+            copyBtn.textContent = "✅ Copied!";
+            setTimeout(() => (copyBtn.textContent = "📋 Copy"), 1500);
+        } catch (err) {
+            console.error("Copy failed:", err);
+            copyBtn.textContent = "❌ Error";
+        }
+    });
+
+    messageElement.appendChild(copyBtn);
+}
+
+// ---------- Voice Recognition ----------
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = 'en-IN';
+recognition.interimResults = false;
+
+voiceBtn.addEventListener('click', () => {
+    speechSynthesis.cancel(); // Stop current speech
+    recognition.start();
+    console.log('🎙️ Listening...');
+});
+
+recognition.onresult = (event) => {
+    const voiceMessage = event.results[0][0].transcript;
+    appendMessage('user', voiceMessage);
+    sendMessageToAPI(voiceMessage);
+};
+
+recognition.onstart = () => {
+    const listeningDiv = document.createElement('div');
+    listeningDiv.id = 'listeningIndicator';
+    listeningDiv.className = 'typing-indicator';
+    listeningDiv.textContent = '🎧 Listening...';
+    chatbotMessages.appendChild(listeningDiv);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+};
+recognition.onend = () => {
+    const listeningDiv = document.getElementById('listeningIndicator');
+    if (listeningDiv) chatbotMessages.removeChild(listeningDiv);
+};
+
+// ---------- Send Message to Gemini API ----------
+async function sendMessageToAPI(message) {
+    // Stop any old speech before new query
+    speechSynthesis.cancel();
+
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
+    typingDiv.innerHTML = '<span></span><span></span><span></span>';
+    chatbotMessages.appendChild(typingDiv);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+    try {
+        const res = await fetch('https://jatin-mathur.vercel.app/api/chat.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: message })
+        });
+
+        if (!res.ok) throw new Error('API error');
+
+        const data = await res.json();
+        chatbotMessages.removeChild(typingDiv);
+
+        const botText = data.response || data.reply || "No response";
+        appendMessage('bot', botText);
+        speakResponse(botText);
+
+    } catch (err) {
+        chatbotMessages.removeChild(typingDiv);
+        appendMessage('bot', '⚠️ Error: Unable to fetch response');
+        console.error(err);
+    }
+}
+
+// ---------- Text-to-Speech (Indian English) ----------
+function speakResponse(text) {
+    speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'hi-IN'; // Indian English
+    const voices = speechSynthesis.getVoices();
+    const indianVoice = voices.find(v => v.lang === "en-IN" || v.name.includes("India"));
+    if (indianVoice) utterance.voice = indianVoice;
+    speechSynthesis.speak(utterance);
+}
+
 
 
 
